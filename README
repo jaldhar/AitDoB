@@ -29,7 +29,7 @@ Installation
 AitDoB is currently distributed as source.  You will need a C++ compiler 
 capable of handling the C++11 standard and the ncurses library to compile it.  
 So far it has only been tested with g++ 4.6 on Ubuntu Linux 10.10 and Debian
-GNU/Linux 5.0.
+GNU/Linux 6.0.
 
 Change to the directory containing the source code and compile the program 
 like this:
@@ -53,3 +53,15 @@ PREFIX=/usr/local make install
 
 A more flexible build framework and perhaps some prebuilt binaries will be 
 provided soon.
+
+Instructions
+------------
+
+h, left cursor key  = move west     y = move northwest                     
+j, down cursor key  = move south    u = move northeast
+k, up cursor key    = move north    b = move southwest
+l, right cursor key = move east     n = move southeast
+
+!      = launch a shell
+CTRL-R = refresh the screen.
+Q      = exit.
