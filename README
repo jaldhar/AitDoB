@@ -1,0 +1,55 @@
+Ascent into the Depths of Beyond
+--------------------------------
+
+The Scarlet Plague overran your village in a day and was gone as suddenly as 
+it came.  Unlike the lucky ones who had died swiftly albeit screaming in 
+torment, you bear no outward signs of disease at present.  But you are marked 
+for doom just the same.  And though you have spent all that remains of your 
+fortune in consulting with the finest apothecaries in the land they have 
+proved powerless to halt the plagues macabre advance.  So you wind down your 
+affairs and prepare for death.  For it is better to die cleanly by ones own 
+hand then to spend the rest of ones days writhing in the hellish agony that is 
+the implacable fate of the Red Reaver's victims.
+
+But then from a chance pilgrimage to the Temple of Stars comes a glimmer of 
+hope.  The oracle who resides there has shown you the location of the fabled 
+Depths of Beyond where over 1000 years ago the experiments of a mad alchemist 
+went horribly wrong, rending the fabric of reality in ways the sages of our 
+times can scarcely fathom.  They say magic flows uncontrollably there.  
+Strange gibbering beasts from unknown dimensions haunt accursed corridors and
+perhaps the unshriven spirit of the alchemist still remains.  Even if not, 
+some of his potions and philtres surely must survive.  And perhaps from them
+may be distilled the cure that you seek.  It is a long shot but...what do you
+have to lose?
+
+
+Installation
+------------
+
+AitDoB is currently distributed as source.  You will need a C++ compiler 
+capable of handling the C++11 standard and the ncurses library to compile it.  
+So far it has only been tested with g++ 4.6 on Ubuntu Linux 10.10 and Debian
+GNU/Linux 5.0.
+
+Change to the directory containing the source code and compile the program 
+like this:
+
+$ make
+
+...Then run it from the directory
+
+$ ./aitdob
+
+...or install it like this
+
+# make install
+
+This will install into /usr/games.  You can change the location by setting the
+PREFIX variable.  So for example:
+
+PREFIX=/usr/local make install 
+
+...will install into /usr/local/games.
+
+A more flexible build framework and perhaps some prebuilt binaries will be 
+provided soon.
