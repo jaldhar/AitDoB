@@ -11,36 +11,18 @@ using namespace std;
 #include "ui.h"
 #include "world.h"
 
-Game* Game::_instance = nullptr;
-
-extern Ui*    ui;
-extern World* world;
-
-Game* Game::instance() {
-    if(_instance == nullptr)
-        _instance = new Game();
-
-    return _instance;
-}
-
-Game::Game() {
-}
-
-Game::~Game() {
-    if(_instance != nullptr)
-        delete _instance;
-}
-
 int Game::run() {
     srand(time(NULL));
     STATE phase = STATE::COMMAND;
-    world->create();
-    ui->init();
-    ui->message("Ascent into the Depths of Beyond");
+    World world;
+    world.create();
+    Ui ui;
+    ui.init();
+    ui.message("Ascent into the Depths of Beyond");
     while(1) {
         switch (phase) {
             case STATE::COMMAND:
-                phase = ui->handleInput();
+                phase = ui.handleInput();
                 break;
             case STATE::DOOR:
                 phase = door();
@@ -51,48 +33,50 @@ int Game::run() {
             default:
                 phase = error();
         }
-        ui->draw();
+        ui.draw();
     }
 
 end:
-    ui->message("--press a key to continue--");
-    ui->pause();
-    ui->end();
+    ui.message("--press a key to continue--");
+    ui.pause();
+    ui.end();
 
     return EXIT_SUCCESS;
 }
 
 STATE Game::door() {
-    Door* d = dynamic_cast<Door *>
-       (world->tileAt(world->playerRow(), world->playerCol()).contents());
-    if (d->open() == true)
+    Ui ui;
+    World world;
+    Door& d = dynamic_cast<Door&>
+       (world.tileAt(world.playerRow(), world.playerCol()).contents());
+    if (d.open() == true)
         return STATE::COMMAND;
 
-    Player& p = world->player();
+    Player& p = world.player();
 
     while (1) {
-        int damage = d->attack();
+        int damage = d.attack();
         damage -= p.defend();
         if ( damage > 0 ) {
             p.setHealth(-damage);
-            ui->message("The door does not budge.");
+            ui.message("The door does not budge.");
         }
         if ( p.health() < 1 ) {
-            ui->message("You have died trying to break down the door");
+            ui.message("You have died trying to break down the door");
             return STATE::QUIT;
         }
 
         damage = p.attack();
-        damage -= d->defend();
+        damage -= d.defend();
         if ( damage > 0 ) {
-            d->setHealth(-damage);
-            ui->message("The door shudders");
+            d.setHealth(-damage);
+            ui.message("The door shudders");
         }
 
-        if ( d->health() < 1 ) {
-            ui->message("You have broken down the door.");
-            world->tileAt( world->playerRow(),
-                world->playerCol() ).setTerrain(TERRAIN::FLOOR);
+        if ( d.health() < 1 ) {
+            ui.message("You have broken down the door.");
+            world.tileAt( world.playerRow(),
+                world.playerCol() ).setTerrain(TERRAIN::FLOOR);
             break;
         }
 
@@ -101,8 +85,8 @@ STATE Game::door() {
 }
 
 STATE Game::error() {
-
-    ui->message("Huh?");
+    Ui ui;
+    ui.message("Huh?");
     return STATE::COMMAND;
 }
 
@@ -138,25 +122,27 @@ STATE Game::move_downright() {
 }
 
 STATE Game::move(int row, int col) {
-
-    int temprow = world->playerRow() + row;
-    int tempcol = world->playerCol() + col;
-    Tile& t = world->tileAt( temprow, tempcol );
+    Ui ui;
+    World world;
+    int temprow = world.playerRow() + row;
+    int tempcol = world.playerCol() + col;
+    Tile& t = world.tileAt( temprow, tempcol );
     if (temprow > -1
-        && temprow < world->height()
+        && temprow < world.height()
         && tempcol > -1
-        && tempcol < world->width()
+        && tempcol < world.width()
         && t.passable())
     {
-        world->setPlayerRow(temprow);
-        world->setPlayerCol(tempcol);
-        ui->message("");
+        world.setPlayerRow(temprow);
+        world.setPlayerCol(tempcol);
+        Ui ui;
+        ui.message("");
         if (t.terrain() == TERRAIN::H_DOOR || t.terrain() == TERRAIN::V_DOOR) {
             return STATE::DOOR;
         }
     }
     else {
-        ui->message("You can't go there!");
+        ui.message("You can't go there!");
     }
     return STATE::COMMAND;
 }
@@ -166,19 +152,22 @@ STATE Game::quit() {
 }
 
 STATE Game::refresh() {
-    ui->refresh();
+    Ui ui;
+    ui.refresh();
 
     return STATE::COMMAND;
 }
 
 STATE Game::resize() {
-    ui->resize();
+    Ui ui;
+    ui.resize();
 
     return STATE::COMMAND;
 }
 
 STATE Game::shell() {
-    ui->shell();
+    Ui ui;
+    ui.shell();
 
     return STATE::COMMAND;
 }

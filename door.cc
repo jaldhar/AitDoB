@@ -8,13 +8,12 @@ using namespace std;
 #include "tile.h"
 #include "world.h"
 
-extern World* world;
-
 Door::Door(int row, int col, bool horizontal) : Thing(THINGTYPE::DOOR),
     Combat(1, 1, 1) {
     _row = row;
     _col = col;
-    Tile& t = world->tileAt(row, col);
+    World world;
+    Tile& t = world.tileAt(row, col);
     t.setTerrain(horizontal ? TERRAIN::H_DOOR : TERRAIN::V_DOOR);
     _open = false;
 }

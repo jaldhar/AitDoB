@@ -8,8 +8,6 @@ using namespace std;
 #include "tile.h"
 #include "world.h"
 
-extern World* world;
-
 Room::Room(int top, int left, int height, int width) {
     _top    = top;
     _left   = left;
@@ -25,7 +23,8 @@ Room::Room(int top, int left, int height, int width) {
 void Room::fill() {
     for (int row = _top; row < _top + _height; row++) {
         for (int col = _left; col < _left + _width; col++) {
-            Tile& t = world->tileAt(row, col);
+            World world;
+            Tile& t = world.tileAt(row, col);
             t.setPassable(true);
             t.setTerrain(TERRAIN::FLOOR);
         }

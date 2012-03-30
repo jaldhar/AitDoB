@@ -4,7 +4,9 @@
 #ifndef THING_H
 #define THING_H 1
 
-enum class THINGTYPE { NOTHING = 0, DOOR };
+#include <cstdint>
+
+enum class THINGTYPE : uint8_t { NOTHING = 0, DOOR };
 
 class Thing {
 public:

@@ -12,57 +12,33 @@ using namespace std;
 #include "ui.h"
 #include "world.h"
 
-extern Game*  game;
-extern Ui*    ui;
-extern World* world;
-
-Ui* Ui::_instance = nullptr;
-
-Ui* Ui::instance() {
-    if(_instance == nullptr)
-        _instance = new Ui();
-
-    return _instance;
-}
+WINDOW*            Ui::_message;
+WINDOW*            Ui::_status;
+WINDOW*            Ui::_viewport;
+KEYMAP             Ui::_keybindings;
+TILEMAP            Ui::_tilemap;
+int                Ui::_lines;
+int                Ui::_cols;
+int                Ui::_top;
+int                Ui::_left;
 
 static void end_sig(int /* sig */) {
-    ui->end();
+    Ui ui;
+    ui.end();
 }
 
-static int createStatusWin(WINDOW *win, int /* ncols */) {
-    ui->setStatusWin(win);
+static int createStatusWin(WINDOW* win, int /* ncols */) {
+    Ui ui;
+    ui.setStatusWin(win);
 
     return 0;
 }
 
-static int createMessageWin(WINDOW *win, int /* ncols */) {
-    ui->setMessageWin(win);
+static int createMessageWin(WINDOW* win, int /* ncols */) {
+    Ui ui;
+    ui.setMessageWin(win);
 
     return 0;
-}
-
-Ui::Ui() {
-    signal (SIGINT, end_sig);
-    signal (SIGSEGV, end_sig);
-
-    _viewport = 0;
-    _lines = 0;
-    _cols  = 0;
-    _top   = 0;
-    _left  = 0;
-}
-
-Ui::~Ui() {
-
-    if(_message)            // These were created with malloc(3)
-        free(_message);
-    if(_status)
-        free(_status);
-    if(_viewport)
-        free(_viewport);
-
-    if(_instance != nullptr)
-        delete _instance;
 }
 
 void Ui::draw() {
@@ -74,8 +50,8 @@ void Ui::draw() {
 }
 
 void Ui::drawStatus() {
-    Player& p = world->player();
-    wclear(_status);
+    World world;
+    Player& p = world.player();
     mvwprintw(_status, 0, 1, "H: %2d    XP: %2d",
         p.health(), p.xp());
     wnoutrefresh(_status);
@@ -90,83 +66,36 @@ void Ui::drawViewport() {
 
     wclear(_viewport);
     getmaxyx(_viewport, height, width);
+    World world;
+    int playerRow = world.playerRow();
+    int playerCol = world.playerCol();
 
-    int top = world->playerRow() - (height / 2);
+    int top = playerRow - (height / 2);
     if (top < 0) {
         top = 0;
     }
-    int left = world->playerCol() - (width / 2);
+    int left = playerCol - (width / 2);
     if (left < 0) {
         left = 0;
     }
     for (int row = 0; row < height; row++) {
         wmove(_viewport, row, 0);
         int mapRow = row + top;
-        if (mapRow > world->height() - 1) {
+        if (mapRow > world.height() - 1) {
             continue;
         }
         for (int col = 0; col < width; col++) {
             int mapCol = col + left;
-            if (mapCol > world->width() - 1) {
+            if (mapCol > world.width() - 1) {
                 continue;
             }
             chtype display;
-            int playerRow = world->playerRow();
-            int playerCol = world->playerCol();
             if (mapRow == playerRow && mapCol == playerCol) {
                 display = '@' | COLOR_PAIR(5);
             }
             else {
-                Tile& t = world->tileAt(mapRow, mapCol);
-                switch (t.terrain()) {
-                    case TERRAIN::CORRIDOR:
-                        display = '.';
-                        break;
-                    case TERRAIN::H_DOOR:
-                        display = 'x';
-                        break;
-                    case TERRAIN::V_DOOR:
-                        display = 'x';
-                        break;
-                    case TERRAIN::FLOOR:
-                        display = '.';
-                        break;
-                    case TERRAIN::C_WALL:
-                        display = '+';
-                        break;
-                    case TERRAIN::H_WALL:
-                        display = ACS_HLINE;
-                        break;
-                    case TERRAIN::V_WALL:
-                        display = ACS_VLINE;
-                        break;
-                    case TERRAIN::UL_WALL:
-                        display = ACS_ULCORNER;
-                        break;
-                    case TERRAIN::UR_WALL:
-                        display = ACS_URCORNER;
-                        break;
-                    case TERRAIN::LR_WALL:
-                        display = ACS_LRCORNER;
-                        break;
-                    case TERRAIN::LL_WALL:
-                        display = ACS_LLCORNER;
-                        break;
-                    case TERRAIN::TT_WALL:
-                        display = ACS_TTEE;
-                        break;
-                    case TERRAIN::RT_WALL:
-                        display = ACS_RTEE;
-                        break;
-                    case TERRAIN::BT_WALL:
-                        display = ACS_BTEE;
-                        break;
-                    case TERRAIN::LT_WALL:
-                        display = ACS_LTEE;
-                        break;
-                    default:
-                        display = ' ';
-                        break;
+                Tile& t = world.tileAt(mapRow, mapCol);
+                    display = _tilemap[t.terrain()];
                 }
             }
             waddch(_viewport, display);
@@ -182,23 +111,31 @@ void Ui::end() {
     exit(EXIT_SUCCESS);
 }
 
+
 STATE Ui::handleInput() {
     int c = getch();
-
-    KEYMAP::iterator it = _keybindings.begin();
-    if ((it = _keybindings.find(c)) != _keybindings.end())
-        return (game->*it->second)();
-
+    auto it = _keybindings.find(c);
+    if (it != _keybindings.end()) {
+        Game game;
+        return (game.*it->second)();
+    }
     beep();
     return STATE::ERROR;
 }
 
 void Ui::init() {
     setlocale(LC_ALL, "POSIX");
+    signal (SIGINT, end_sig);
+    signal (SIGSEGV, end_sig);
+
+    _viewport = 0;
+    _lines = 0;
+    _cols  = 0;
+    _top   = 0;
+    _left  = 0;
     nonl();
     cbreak();
     noecho();
-
     _keybindings[0x12] /* CTRL-R */ = &Game::refresh;
     _keybindings['Q']               = &Game::quit;
     _keybindings['!']               = &Game::shell;
@@ -229,6 +166,23 @@ void Ui::init() {
         init_pair(4, COLOR_BLACK,  COLOR_BLACK);
         init_pair(5, COLOR_RED,  COLOR_WHITE);
     }
+
+    _tilemap[TERRAIN::EMPTY]    = ' '; // use of ACS_* requires this goes
+    _tilemap[TERRAIN::CORRIDOR] = '.'; // after call to initscr().
+    _tilemap[TERRAIN::H_DOOR]   = 'x';
+    _tilemap[TERRAIN::V_DOOR]   = 'x';
+    _tilemap[TERRAIN::FLOOR]    = '.';
+    _tilemap[TERRAIN::C_WALL]   = '+';
+    _tilemap[TERRAIN::H_WALL]   = ACS_HLINE;
+    _tilemap[TERRAIN::V_WALL]   = ACS_VLINE;
+    _tilemap[TERRAIN::UL_WALL]  = ACS_ULCORNER;
+    _tilemap[TERRAIN::UR_WALL]  = ACS_URCORNER;
+    _tilemap[TERRAIN::LR_WALL]  = ACS_LRCORNER;
+    _tilemap[TERRAIN::LL_WALL]  = ACS_LLCORNER;
+    _tilemap[TERRAIN::TT_WALL]  = ACS_TTEE;
+    _tilemap[TERRAIN::RT_WALL]  = ACS_RTEE;
+    _tilemap[TERRAIN::BT_WALL]  = ACS_BTEE;
+    _tilemap[TERRAIN::LT_WALL]  = ACS_LTEE;
 
     resize();
 }
@@ -271,12 +225,12 @@ void Ui::resize() {
     draw();
 }
 
-void Ui::setStatusWin(WINDOW *&win) {
+void Ui::setStatusWin(WINDOW*& win) {
 
     _status = win;
 }
 
-void Ui::setMessageWin(WINDOW *&win) {
+void Ui::setMessageWin(WINDOW*& win) {
 
     _message = win;
 }

@@ -3,12 +3,15 @@
 #ifndef GAME_H
 #define GAME_H 1
 
-enum class STATE { ERROR = 0, COMMAND, DOOR, QUIT };
+#include <cstdint>
+#include <memory>
+
+enum class STATE : uint8_t { ERROR = 0, COMMAND, DOOR, QUIT };
 
 class Game {
 public:
-    static Game* instance();
-    ~Game();
+    Game()=default;
+    ~Game()=default;
     int   run();
     STATE door();
     STATE error();
@@ -27,8 +30,6 @@ public:
     STATE shell();
 
 private:
-    Game();
-    static Game* _instance;
 };
 
 #endif

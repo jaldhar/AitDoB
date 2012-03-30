@@ -10,22 +10,18 @@ Tile::Tile() {
     _terrain = TERRAIN::EMPTY;
 }
 
-Tile::~Tile() {
-    if (_contents != nullptr)
-        delete _contents;
-}
-
-Thing* Tile::contents() {
-    return _contents;
+Thing& Tile::contents() const {
+    return *_contents;
 }
 
 void Tile::setContents(Thing* thing) {
     if (thing == nullptr) {
-        delete _contents;
-        _contents = nullptr;
+        delete _contents.release();
+        _contents.reset(nullptr);
     }
     else
-        _contents = thing;
+        _contents.reset(thing);
+}
 }
 
 bool Tile::passable() {

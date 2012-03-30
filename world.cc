@@ -10,40 +10,17 @@ using namespace std;
 #include "tile.h"
 #include "world.h"
 
-World* World::_instance = nullptr;
-
-World* World::instance() {
-    if(_instance == nullptr)
-        _instance = new World();
-
-    return _instance;
-}
-
-World::World() {
-}
-
-World::~World() {
-    for (int row = 0; row < MAP_HEIGHT; row++) {
-        for (int col = 0; col < MAP_WIDTH; col++) {
-            if(_map[row][col] != 0)
-                delete _map[row][col];
-        }
-    }
-    delete [] _map;
-   for_each(_rooms.begin(), _rooms.end(), [](Room *p){ delete p; });
-
-    if(_player != nullptr)
-        delete _player;
-
-    if(_instance != nullptr)
-        delete _instance;
-}
+array<array<TILEPTR, MAP_WIDTH>,MAP_HEIGHT> World::_map;
+vector<ROOMPTR>                 World::_rooms;
+PLAYERPTR                       World::_player;
+int                             World::_playerRow;
+int                             World::_playerCol;
 
 void World::create() {
     // Begin by filling in the entire grid.
-    for (int row = 0; row < MAP_HEIGHT; row++) {
-        for (int col = 0; col < MAP_WIDTH; col++) {
-            _map[row][col] = new Tile();
+    for (array<TILEPTR, MAP_WIDTH>& row : _map) {
+        for (TILEPTR& col : row) {
+            col = TILEPTR(new Tile());
         }
     }
 
@@ -58,7 +35,8 @@ void World::create() {
     addCorridors();
 
     // Now add the rooms. This goes after addCorridors() to prevent collisions.
-    for_each(_rooms.begin(), _rooms.end(), [](Room *r) { r->fill(); });
+    for(ROOMPTRREF r : _rooms)
+        r->fill();
 
     // Add walls.
     addWalls();
@@ -67,7 +45,7 @@ void World::create() {
     addDoors();
 
     // Position player.
-    _player = new Player();
+    _player = PLAYERPTR(new Player());
     do {
         _playerRow = rand() % MAP_HEIGHT;
         _playerCol = rand() % MAP_WIDTH;
@@ -127,7 +105,7 @@ void World::makeVerticalCorridor(int row1, int row2, int col) {
 void World::addDoors() {
     for (int row = 0; row < MAP_HEIGHT; row++) {
         for (int col = 0; col < MAP_WIDTH; col++) {
-            Tile*& t = _map[row][col];
+            TILEPTRREF t = _map[row][col];
             if (t->terrain() != TERRAIN::CORRIDOR)
                 continue;
             if(_map[row - 1][col]->isWall() && _map[row + 1][col]->isWall() &&
@@ -148,7 +126,7 @@ void World::addWalls() {
     //First pass puts a center wall around everything
     for (int row = 0; row < MAP_HEIGHT; row++) {
         for (int col = 0; col < MAP_WIDTH; col++) {
-            Tile*& t = _map[row][col];
+            TILEPTRREF t = _map[row][col];
             if (t->terrain() != TERRAIN::EMPTY)
                 continue;
             for (int x = row - 1; x < row + 2; x++) {
@@ -173,7 +151,7 @@ void World::addWalls() {
     // Second pass makes specific wall types as needed.
     for (int row = 0; row < MAP_HEIGHT; row++) {
         for (int col = 0; col < MAP_WIDTH; col++) {
-            Tile*& t = _map[row][col];
+            TILEPTRREF t = _map[row][col];
             if (t->terrain() != TERRAIN::C_WALL)
                 continue;
             int count = 7, edges = 0; // represent the edges as a binary number
@@ -224,8 +202,6 @@ void World::addWalls() {
                 t->setTerrain(TERRAIN::C_WALL);
             else
                 fprintf(stderr, "%d\n", edges); // For debugging.
-
-
         }
     }
 }
@@ -246,28 +222,28 @@ void World::buildRooms(int sectorRows, int sectorCols) {
             width -= width % 2;
             top += (row * MAP_SECTORHEIGHT);
             left += (col * MAP_SECTORWIDTH);
-            _rooms.push_back(new Room(top, left, height, width));
+            _rooms.push_back(ROOMPTR(new Room(top, left, height, width)));
         }
     }
 }
 
-int World::height() {
+int World::height() const {
     return MAP_HEIGHT;
 }
 
-int World::width() {
+int World::width() const {
     return MAP_WIDTH;
 }
 
-int World::sectorHeight() {
+int World::sectorHeight() const {
     return MAP_SECTORHEIGHT;
 }
 
-int World::sectorWidth() {
+int World::sectorWidth() const {
     return MAP_SECTORWIDTH;
 }
 
-Player& World::player() {
+Player& World::player() const {
     return *_player;
 }
 
@@ -287,6 +263,6 @@ void World::setPlayerCol(int col) {
     _playerCol = col;
 }
 
-Tile& World::tileAt(int row, int col) {
+Tile& World::tileAt(int row, int col) const {
     return *_map[row][col];
 }
