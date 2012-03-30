@@ -40,6 +40,8 @@ public:
     int           playerCol();
     void          setPlayerCol(int col);
     Tile&         tileAt(int row, int col) const;
+    void          fov(int origx, int origy, int radius,
+                  std::function<bool (TILEPTRREF)> callback);
 private:
     void          addCorridors();
     void          makeCorridor(int ax, int ay, int bx, int by);

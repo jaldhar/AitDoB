@@ -95,8 +95,13 @@ void Ui::drawViewport() {
             }
             else {
                 Tile& t = world.tileAt(mapRow, mapCol);
+                if (t.visible()) {
                     display = _tilemap[t.terrain()];
+                    if (t.isBlock())
+                        display |= COLOR_PAIR(2) | A_BOLD;
                 }
+                else
+                    display = _tilemap[TERRAIN::EMPTY];
             }
             waddch(_viewport, display);
         }
@@ -161,7 +166,7 @@ void Ui::init() {
     if (has_colors()) {
         start_color();
         init_pair(1, COLOR_BLACK, COLOR_WHITE);
-        init_pair(2, COLOR_BLACK, COLOR_YELLOW);
+        init_pair(2, COLOR_YELLOW, COLOR_BLACK);
         init_pair(3, COLOR_BLACK,  COLOR_CYAN);
         init_pair(4, COLOR_BLACK,  COLOR_BLACK);
         init_pair(5, COLOR_RED,  COLOR_WHITE);

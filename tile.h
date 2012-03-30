@@ -21,13 +21,16 @@ public:
     void    setContents(Thing* thing);
     bool    passable();
     void    setPassable(bool p);
+    bool    visible();
+    void    setVisible(bool v);
     TERRAIN terrain();
     void    setTerrain(TERRAIN t);
-    bool    isWall();
+    bool    isBlock();
 
 private:
     std::unique_ptr<Thing>  _contents;
     bool    _passable;
+    bool    _visible;
     TERRAIN _terrain;
 };
 

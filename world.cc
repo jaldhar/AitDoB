@@ -1,6 +1,7 @@
 // World --The model class for AitDoB (implementation)
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 using namespace std;
 
@@ -108,12 +109,12 @@ void World::addDoors() {
             TILEPTRREF t = _map[row][col];
             if (t->terrain() != TERRAIN::CORRIDOR)
                 continue;
-            if(_map[row - 1][col]->isWall() && _map[row + 1][col]->isWall() &&
+            if(_map[row - 1][col]->isBlock() && _map[row + 1][col]->isBlock() &&
                 (_map[row][col - 1]->terrain() == TERRAIN::FLOOR ||
                 _map[row][col + 1]->terrain() == TERRAIN::FLOOR)) {
                 t->setContents(new Door(row, col, false));
             }
-            else if(_map[row][col-1]->isWall() && _map[row][col+1]->isWall() &&
+            else if(_map[row][col-1]->isBlock() && _map[row][col+1]->isBlock() &&
                 (_map[row - 1][col]->terrain() == TERRAIN::FLOOR ||
                 _map[row + 1][col]->terrain() == TERRAIN::FLOOR)) {
                 t->setContents(new Door(row, col, true));
@@ -167,7 +168,7 @@ void World::addWalls() {
                     }
                     if (x == row && y == col)
                         continue;
-                    if (_map[x][y]->isWall()) {
+                    if (_map[x][y]->isBlock()) {
                         edges += pow(2, count);
                     }
                     count--;
@@ -265,4 +266,25 @@ void World::setPlayerCol(int col) {
 
 Tile& World::tileAt(int row, int col) const {
     return *_map[row][col];
+}
+
+// based on example 2 at
+// http://www.roguebasin.roguelikedevelopment.org/index.php?title=Eligloscode
+
+void World::fov(int origx, int origy, int radius,
+function<bool (TILEPTRREF)> callback) {
+    float x, y;
+    for (int i = 0; i < 360; i++) {
+        x = cos((float)i * 0.01745f);
+        y = sin((float)i * 0.01745f);
+        float ox = (float)origx + 0.5f;
+        float oy = (float)origy + 0.5f;
+        for(int j = 0; j < radius; j++) {
+            TILEPTRREF t = _map[(int)ox][(int)oy];
+            if (callback(t) == false)
+                break;
+            ox+=x;
+            oy+=y;
+        }
+    }
 }

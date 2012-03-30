@@ -16,10 +16,20 @@ int Game::run() {
     STATE phase = STATE::COMMAND;
     World world;
     world.create();
+    world.fov(world.playerRow(), world.playerCol(), 5,
+    [](TILEPTRREF t) -> bool {
+        t->setVisible(true);
+        return t->isBlock() ? false : true;
+    });
     Ui ui;
     ui.init();
     ui.message("Ascent into the Depths of Beyond");
     while(1) {
+        world.fov(world.playerRow(), world.playerCol(), 5,
+        [](TILEPTRREF t) -> bool {
+            t->setVisible(false);
+            return t->isBlock() ? false : true;
+        });
         switch (phase) {
             case STATE::COMMAND:
                 phase = ui.handleInput();
@@ -33,6 +43,11 @@ int Game::run() {
             default:
                 phase = error();
         }
+        world.fov(world.playerRow(), world.playerCol(), 5,
+        [](TILEPTRREF t) -> bool {
+            t->setVisible(true);
+            return t->isBlock() ? false : true;
+        });
         ui.draw();
     }
 
