@@ -264,6 +264,16 @@ void World::setPlayerCol(int col) {
     _playerCol = col;
 }
 
+int World::roomNumber(int row, int col) {
+    auto it = find_if(begin(_rooms), end(_rooms),
+        [row, col](ROOMPTRREF r){
+            return (row >= r->top() && row < (r->top() + r->height()) &&
+            col >= r->left() && col < (r->left() + r->width()));
+        }
+    );
+    return _rooms.end() - it;
+}
+
 Tile& World::tileAt(int row, int col) const {
     return *_map[row][col];
 }

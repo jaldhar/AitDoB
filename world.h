@@ -39,6 +39,7 @@ public:
     void          setPlayerRow(int row);
     int           playerCol();
     void          setPlayerCol(int col);
+    int           roomNumber(int row, int col);
     Tile&         tileAt(int row, int col) const;
     void          fov(int origx, int origy, int radius,
                   std::function<bool (TILEPTRREF)> callback);
