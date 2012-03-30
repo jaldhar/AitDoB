@@ -43,10 +43,11 @@ static int createMessageWin(WINDOW* win, int /* ncols */) {
 
 void Ui::draw() {
     curs_set(0);
+    wclear(stdscr);
     drawViewport();
     drawStatus();
     drawMessage();
-    refresh();
+    doupdate();
 }
 
 void Ui::drawStatus() {
@@ -64,7 +65,6 @@ void Ui::drawMessage() {
 void Ui::drawViewport() {
     int height, width;
 
-    wclear(_viewport);
     getmaxyx(_viewport, height, width);
     World world;
     int playerRow = world.playerRow();
@@ -91,7 +91,7 @@ void Ui::drawViewport() {
             }
             chtype display;
             if (mapRow == playerRow && mapCol == playerCol) {
-                display = '@' | COLOR_PAIR(5);
+                display = '@' | COLOR_PAIR(5) | A_BOLD;
             }
             else {
                 Tile& t = world.tileAt(mapRow, mapCol);
@@ -169,7 +169,7 @@ void Ui::init() {
         init_pair(2, COLOR_YELLOW, COLOR_BLACK);
         init_pair(3, COLOR_BLACK,  COLOR_CYAN);
         init_pair(4, COLOR_BLACK,  COLOR_BLACK);
-        init_pair(5, COLOR_RED,  COLOR_WHITE);
+        init_pair(5, COLOR_RED,  COLOR_BLACK);
     }
 
     _tilemap[TERRAIN::EMPTY]    = ' '; // use of ACS_* requires this goes
@@ -193,8 +193,8 @@ void Ui::init() {
 }
 
 void Ui::message(const char *msg) {
-    wclear(_message);
     mvwaddstr(_message, 0, 0, msg);
+    wclrtoeol(_message);
     wrefresh(_message);
 }
 
@@ -203,9 +203,10 @@ void Ui::pause() {
 }
 
 void Ui::refresh() {
-    wrefresh(_status);
-    wrefresh(_message);
-    wrefresh(_viewport);
+    redrawwin(_status);
+    redrawwin(_message);
+    redrawwin(_viewport);
+    doupdate();
 }
 
 void Ui::resize() {
@@ -219,10 +220,10 @@ void Ui::resize() {
     else {
         wresize(_viewport, _lines, _cols);
     }
-    wbkgd(_viewport, ' ' | COLOR_PAIR(1));
+    wbkgd(_viewport, ' ');
 
     wresize(_message, 1, _cols);
-    wbkgd(_message, ' ' | COLOR_PAIR(1));
+    wbkgd(_message, ' ');
 
     wresize(_status, 1, _cols);
     wbkgd(_status, ' ' | COLOR_PAIR(3));
