@@ -4,7 +4,6 @@
 #include <cstdlib>
 using namespace std;
 
-#include "corridor.h"
 #include "door.h"
 #include "player.h"
 #include "room.h"
@@ -31,7 +30,6 @@ World::~World() {
         }
     }
     delete [] _map;
-   for_each(_corridors.begin(), _corridors.end(), [](Corridor *p){ delete p; });
    for_each(_rooms.begin(), _rooms.end(), [](Room *p){ delete p; });
 
     if(_player != nullptr)
@@ -80,19 +78,50 @@ void World::addCorridors() {
     // Create corridors by shuffling the list of rooms and going backwards
     // through it joining the center point of each room to that of the room
     // before it.
-    random_shuffle(_rooms.begin(), _rooms.end());
-    vector<Room*>::reverse_iterator rit;
-    for (rit = _rooms.rbegin(); rit < _rooms.rend() - 1; ++rit) {
-        Room*& r1 = *rit;
-        Room*& r2 = *(rit + 1); // previous room in list.
-        _corridors.push_back(new Corridor(r1->centerX(),r1->centerY(),
-            r2->centerX(),r2->centerY()));
+    random_shuffle(begin(_rooms), end(_rooms));
+    for (auto rit = _rooms.rbegin(); rit < _rooms.rend() - 1; ++rit) {
+        ROOMPTRREF r1 = *rit;
+        ROOMPTRREF r2 = *(rit + 1); // previous room in list.
+        makeCorridor(r1->centerX(),r1->centerY(),r2->centerX(),r2->centerY());
     }
     // Join the last and the first rooms to complete the loop.
-    Room*& r1 = *(_rooms.begin());
-    Room*& r2 = *(_rooms.end() - 1);
-    _corridors.push_back(new Corridor(r1->centerX(),r1->centerY(),
-        r2->centerX(),r2->centerY()));
+    ROOMPTRREF r1 = *(begin(_rooms));
+    ROOMPTRREF r2 = *(end(_rooms) - 1);
+    makeCorridor(r1->centerX(),r1->centerY(),r2->centerX(),r2->centerY());
+}
+
+void World::makeCorridor(int ax, int ay, int bx, int by) {
+    if (ax < bx) {
+        makeVerticalCorridor(ax, bx, by);
+        if (ay < by)                    // a to nw of b
+            makeHorizontalCorridor(ax, ay, by);
+        else                            // a to ne of b
+            makeHorizontalCorridor(ax, by, ay);
+    }
+    else {
+        makeVerticalCorridor(bx, ax, by);
+        if (ay < by)                    // a to sw of b
+            makeHorizontalCorridor(ax, ay, by);
+        else
+            makeHorizontalCorridor(ax, by, ay); // a to se of b
+   }
+
+}
+
+void World::makeHorizontalCorridor(int row, int col1, int col2) {
+    for (int i = col1; i <= col2; i++) {
+        TILEPTRREF t = _map[row][i];
+        t->setPassable(true);
+        t->setTerrain(TERRAIN::CORRIDOR);
+    }
+}
+
+void World::makeVerticalCorridor(int row1, int row2, int col) {
+    for (int i = row1; i <= row2; i++) {
+        TILEPTRREF t = _map[i][col];
+        t->setPassable(true);
+        t->setTerrain(TERRAIN::CORRIDOR);
+    }
 }
 
 void World::addDoors() {

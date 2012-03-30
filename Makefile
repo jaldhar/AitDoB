@@ -5,7 +5,6 @@ PREFIX=/usr/local
 
 OBJECTS= aitdob.o \
          combat.o \
-         corridor.o \
          door.o \
          game.o \
          player.o \

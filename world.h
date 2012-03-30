@@ -4,7 +4,7 @@
 #define WORLD_H 1
 
 #include <vector>
-class Corridor;
+
 class Player;
 class Room;
 class Tile;
@@ -28,6 +28,9 @@ public:
 private:
     World();
     void          addCorridors();
+    void          makeCorridor(int ax, int ay, int bx, int by);
+    void          makeHorizontalCorridor(int row1, int row2, int col);
+    void          makeVerticalCorridor(int row, int col1, int col2);
     void          addDoors();
     void          addWalls();
     void          buildRooms(int sectorRows, int sectorCols);
@@ -37,7 +40,6 @@ private:
     static const int MAP_SECTORHEIGHT = 20;
     static const int MAP_SECTORWIDTH  = 20;
     Tile*                           _map[MAP_HEIGHT][MAP_WIDTH];
-    std::vector<Corridor*>          _corridors;
     std::vector<Room*>              _rooms;
     Player*                         _player;
     int                             _playerRow;

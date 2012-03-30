@@ -1,4 +1,4 @@
-// Corridor -- A corridor in AitDoB (implementation)
+// Door -- A door in AitDoB (implementation)
 //
 
 #include <cstdlib>
