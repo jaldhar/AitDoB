@@ -133,6 +133,11 @@ void Ui::init() {
     signal (SIGINT, end_sig);
     signal (SIGSEGV, end_sig);
 
+    ripoffline(1, createMessageWin);
+    ripoffline(-1, createStatusWin);
+    initscr();
+    keypad(stdscr, TRUE);
+
     _viewport = 0;
     _lines = 0;
     _cols  = 0;
@@ -157,11 +162,6 @@ void Ui::init() {
     _keybindings['b']               = &Game::move_downleft;
     _keybindings['n']               = &Game::move_downright;
     _keybindings[KEY_RESIZE]        = &Game::resize;
-
-    ripoffline(1, createMessageWin);
-    ripoffline(-1, createStatusWin);
-    initscr();
-    keypad(stdscr, TRUE);
 
     if (has_colors()) {
         start_color();
@@ -215,7 +215,9 @@ void Ui::resize() {
     wbkgd(stdscr, ' ');
 
     if (!_viewport) {
-        _viewport = subwin(stdscr, _lines, _cols, 0, 0);
+        int begy, begx;
+        getbegyx(stdscr, begy, begx);
+        _viewport = subwin(stdscr, _lines, _cols, begy, begx);
     }
     else {
         wresize(_viewport, _lines, _cols);
