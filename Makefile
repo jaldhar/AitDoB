@@ -1,7 +1,9 @@
-CXX=g++
-CXXFLAGS=-std=c++0x -pedantic -O2 -g -Wall -Wextra $(shell ncurses5-config --cflags)
-LDFLAGS=$(shell ncurses5-config --libs) -lstdc++
-PREFIX=/usr/local
+CXX?=g++
+CXXFLAGS+=-std=c++0x -pedantic -O2 -g -Wall -Wextra $(shell ncurses5-config --cflags)
+LDFLAGS+=$(shell ncurses5-config --libs) -lstdc++
+INSTALL?=install
+PREFIX?=/usr/local
+GAMESDIR?=/games
 
 OBJECTS= aitdob.o \
          combat.o \
@@ -18,7 +20,8 @@ aitdob: $(OBJECTS)
 	$(CXX) $(OBJECTS) -o aitdob $(LDFLAGS)
 
 install: aitdob
-	install -oroot -groot -m0755 -s  aitdob $(PREFIX)/games
+	$(INSTALL) -d $(DESTDIR)$(PREFIX)$(GAMESDIR)
+	$(INSTALL) -m0755 aitdob $(DESTDIR)$(PREFIX)$(GAMESDIR)
 
 clean:
 	-rm aitdob $(OBJECTS)
